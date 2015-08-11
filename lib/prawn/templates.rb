@@ -47,7 +47,7 @@ module Prawn
         @bounding_box = @margin_box
       end
 
-      state.page.new_content_stream
+      new_content_stream state.page
       use_graphic_settings(true)
       forget_text_rendering_mode!
 
@@ -62,6 +62,17 @@ module Prawn
           state.on_page_create_action(self)
         end
       end
+    end
+
+    def new_content_stream page
+      return if page.in_stamp_stream?
+
+      unless page.dictionary.data[:Contents].is_a?(Array)
+        page.dictionary.data[:Contents] = [page.content]
+      end
+      page.instance_variable_set '@content', page.document.ref(:Length => 0)
+      page.dictionary.data[:Contents] << page.document.state.store[page.instance_variable_get('@content')]
+      #document.open_graphics_state
     end
 
     def merge_template_options(page_options, options)
